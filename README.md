@@ -298,23 +298,13 @@ Isso evita conflito com um PostgreSQL ja instalado na maquina em `5432` ou `5433
 4. Deixe **SSL** desligado (ambiente local).
 5. Salve e teste a conexao (**Test**).
 
-### Consultas uteis para a apresentacao
+### Se a autenticação falhar
 
-```sql
--- Posts e contador de curtidas
-SELECT id, title, likes_count, created_at FROM posts ORDER BY created_at DESC;
-
--- Curtidas individuais (regra de unicidade por post + usuario)
-SELECT * FROM post_likes ORDER BY created_at DESC;
-```
-
-### Se a autenticacao falhar
-
-- Confirme que o Postgres do projeto esta de pé: `docker compose ps` e veja se `postlike-postgres` esta **healthy**.
+- Confirme que o Postgres do projeto está de pé: `docker compose ps` e veja se `postlike-postgres` está **healthy**.
 - Confirme a porta publicada na coluna **PORTS** (deve ser algo como `0.0.0.0:55432->5432/tcp`).
-- Se outro programa ja usar a mesma porta, altere `POSTGRES_PORT` no `.env`, recrie os containers (`docker compose down` e `docker compose up -d postgres redis`) e use a nova porta no Beekeeper.
+- Se outro programa já usar a mesma porta, altere `POSTGRES_PORT` no `.env`, recrie os containers (`docker compose down` e `docker compose up -d postgres redis`) e use a nova porta no Beekeeper.
 
-## Fluxo recomendado para avaliacao
+## Fluxo recomendado para avaliação
 
 Para reduzir atrito em ambiente local, o fluxo mais seguro para demonstração é este:
 
