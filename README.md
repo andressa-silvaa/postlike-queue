@@ -445,3 +445,9 @@ A solução evita complexidade desnecessária:
 - sem CQRS
 - sem eventos distribuídos
 
+## Author
+
+👧 **Andressa Costa**
+
+---
+
