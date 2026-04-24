@@ -95,7 +95,7 @@ Isso garante que o mesmo usuario nao consiga curtir o mesmo post mais de uma vez
 
 O endpoint de like retorna `202 Accepted` e publica um job na BullMQ.
 
-Motivacao:
+Motivação:
 
 - desacoplar a API HTTP da escrita final
 - absorver rajadas de requisicoes
