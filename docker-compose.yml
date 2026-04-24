@@ -1,0 +1,94 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postlike-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postlike_queue}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postlike_queue}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: postlike-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ./backend
+    container_name: postlike-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: 3333
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postlike_queue}?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_CACHE_TTL_SECONDS: 60
+      CORS_ORIGIN: http://localhost:${FRONTEND_PORT:-4173}
+      FRONTEND_URL: http://localhost:${FRONTEND_PORT:-4173}
+      SWAGGER_ROUTE_PREFIX: /docs
+      RANKING_LIMIT: 10
+    command: sh -c "npx prisma migrate deploy && npm run prisma:seed && npm run start"
+    ports:
+      - "${BACKEND_PORT:-3333}:3333"
+
+  worker:
+    build:
+      context: ./backend
+    container_name: postlike-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    environment:
+      PORT: 3333
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postlike_queue}?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_CACHE_TTL_SECONDS: 60
+      CORS_ORIGIN: http://localhost:${FRONTEND_PORT:-4173}
+      FRONTEND_URL: http://localhost:${FRONTEND_PORT:-4173}
+      SWAGGER_ROUTE_PREFIX: /docs
+      RANKING_LIMIT: 10
+    command: npm run start:worker
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3333}
+    container_name: postlike-frontend
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT:-4173}:4173"
+
+volumes:
+  postgres_data:
+  redis_data:
