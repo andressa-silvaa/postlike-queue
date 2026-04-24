@@ -340,7 +340,7 @@ Fluxo do ranking:
 O projeto se apoia em três mecanismos simples e robustos:
 
 1. `UNIQUE(post_id, user_id)` em `post_likes`
-2. transacao no worker para inserir a curtida e incrementar o contador
+2. transação no worker para inserir a curtida e incrementar o contador
 3. incremento atômico com Prisma (`increment: 1`)
 
 Consequência pratica:
