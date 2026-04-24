@@ -345,32 +345,9 @@ O projeto se apoia em três mecanismos simples e robustos:
 
 Consequência pratica:
 
-- dois likes simultâneos do mesmo usuário para o mesmo post nâo geram dupla contagem
+- dois likes simultâneos do mesmo usuário para o mesmo post não geram dupla contagem
 - likes de usuários diferentes para o mesmo post são acumulados corretamente
-- o contador final continua consistente mesmo sob concorrencia
-
-## Fluxos principais
-
-### Fluxo 1: listar posts
-
-1. frontend chama `GET /posts`
-2. API consulta o PostgreSQL
-3. resposta contém os posts com `likesCount`
-
-### Fluxo 2: curtir um post
-
-1. usuário informa `userId`
-2. frontend chama `POST /posts/:id/likes`
-3. se for a primeira curtida daquele usuário naquele post, a API retorna `202 Accepted` e enfileira o job; se já existir curtida, retorna `409 Conflict`
-4. worker processa a fila e persiste curtidas novas
-5. frontend pode atualizar detalhes e ranking em seguida
-
-### Fluxo 3: ranking
-
-1. frontend chama `GET /posts/ranking/top-liked`
-2. API tenta o Redis primeiro
-3. se necessário, busca no PostgreSQL
-4. resposta traz ranking ordenado por `likesCount desc`
+- o contador final continua consistente mesmo sob concorrência
 
 ## Endpoints documentados
 
