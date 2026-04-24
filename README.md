@@ -102,7 +102,7 @@ Motivação:
 
 ### 3. Atualização atômica do contador
 
-No worker, a curtida é processada em transacao:
+No worker, a curtida é processada em transação:
 
 1. tenta inserir em `post_likes`
 2. se a inserção for nova, executa `increment: 1` em `posts.likesCount`
