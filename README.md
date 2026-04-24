@@ -304,33 +304,6 @@ Isso evita conflito com um PostgreSQL ja instalado na maquina em `5432` ou `5433
 - Confirme a porta publicada na coluna **PORTS** (deve ser algo como `0.0.0.0:55432->5432/tcp`).
 - Se outro programa já usar a mesma porta, altere `POSTGRES_PORT` no `.env`, recrie os containers (`docker compose down` e `docker compose up -d postgres redis`) e use a nova porta no Beekeeper.
 
-## Fluxo recomendado para avaliação
-
-Para reduzir atrito em ambiente local, o fluxo mais seguro para demonstração é este:
-
-```bash
-cd E:\postlike-queue
-docker compose up -d postgres redis
-docker compose run --rm backend npx prisma migrate deploy
-docker compose run --rm backend npm run prisma:seed
-docker compose up --build backend worker frontend
-```
-
-Esse fluxo evita depender da conexão local do host com o PostgreSQL para migration e seed, usando o próprio serviço `backend` dentro da rede do Docker Compose.
-
-### PowerShell no Windows
-
-Em versões antigas do PowerShell, `&&` entre comandos pode não funcionar. Nesse caso, execute um comando por linha ou use `;` como separador, por exemplo:
-
-```powershell
-cd E:\postlike-queue
-docker compose down -v
-docker compose up -d postgres redis
-docker compose run --rm backend npx prisma migrate deploy
-docker compose run --rm backend npm run prisma:seed
-docker compose up --build backend worker frontend
-```
-
 ## Como funciona a fila
 
 1. O frontend chama `POST /posts/:id/likes` com `userId`.
