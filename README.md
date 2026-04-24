@@ -287,16 +287,16 @@ Isso evita conflito com um PostgreSQL ja instalado na maquina em `5432` ou `5433
 
 ### Passo a passo no Beekeeper
 
-1. Abra o Beekeeper Studio e clique em **New Connection** (nova conexao).
+1. Abra o Beekeeper Studio e clique em **New Connection** (nova conexão).
 2. Escolha **Postgres**.
 3. Preencha os campos:
    - **Host:** `localhost`
-   - **Port:** o valor de `POSTGRES_PORT` do seu `.env` na raiz (ex.: `55432`)
+   - **Port:** o valor de `POSTGRES_PORT` do seu `.env` na raíz (ex.: `55432`)
    - **User:** `postgres` (ou o valor de `POSTGRES_USER`)
    - **Password:** `postgres` (ou o valor de `POSTGRES_PASSWORD`)
    - **Default Database:** `postlike_queue` (ou o valor de `POSTGRES_DB`)
 4. Deixe **SSL** desligado (ambiente local).
-5. Salve e teste a conexao (**Test**).
+5. Salve e teste a conexão (**Test**).
 
 ### Se a autenticação falhar
 
