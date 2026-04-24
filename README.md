@@ -1,21 +1,21 @@
 # Post Like Queue
 
-Projeto full stack para um teste tecnico que simula likes em posts de uma rede social com foco em clareza arquitetural, consistencia sob concorrencia e facilidade de explicacao em apresentacao tecnica.
+Projeto full stack para um teste técnico que simula likes em posts de uma rede social com foco em clareza arquitetural e consistência sob concorrencia.
 
 ## Visao geral
 
-O projeto expoe estes endpoints principais:
+O projeto expõe estes endpoints principais:
 
 - `GET /posts` — lista posts
-- `POST /posts` — cria post (titulo e conteudo; interface React inclui formulario simples)
+- `POST /posts` — cria post (título e conteúdo; interface React inclui formulário simples)
 - `GET /posts/:id` — detalhe do post
-- `POST /posts/:id/likes` — enfileira curtida (nao incrementa no handler HTTP)
+- `POST /posts/:id/likes` — enfileira curtida (não incrementa no handler HTTP)
 - `GET /posts/:id/likes` — quantidade de curtidas
 - `GET /posts/ranking/top-liked` — ranking dos mais curtidos
 
-Sobre curtidas duplicadas: antes de enfileirar, a API verifica se ja existe registro em `post_likes` para o mesmo `postId` e `userId`. Se existir, responde `409 Conflict` com mensagem em portugues. A garantia definitiva continua sendo a constraint unica `(post_id, user_id)` no PostgreSQL e o worker idempotente.
+Sobre curtidas duplicadas: antes de enfileirar, a API verifica se já existe registro em `post_likes` para o mesmo `postId` e `userId`. Se existir, responde `409 Conflict` com mensagem em português. A garantia definitiva continua sendo a constraint única `(post_id, user_id)` no PostgreSQL e o worker idempotente.
 
-O `POST /posts/:id/likes` nao incrementa likes diretamente. Ele recebe a requisicao, valida os dados basicos e publica um job na fila BullMQ. O worker processa o job, grava a curtida no PostgreSQL e incrementa `likes_count` apenas quando a curtida for realmente nova.
+O `POST /posts/:id/likes` não incrementa likes diretamente. Ele recebe a requisição, valida os dados básicos e publica um job na fila BullMQ. O worker processa o job, grava a curtida no PostgreSQL e incrementa `likes_count` apenas quando a curtida for realmente nova.
 
 ## Stack utilizada
 
@@ -79,35 +79,34 @@ O `POST /posts/:id/likes` nao incrementa likes diretamente. Ele recebe a requisi
 `-- README.md
 ```
 
-## Decisoes tecnicas
+## Decisões técnicas
 
-### 1. Consistencia dos likes garantida pelo banco
+### 1. Consistência dos likes garantida pelo banco
 
-O ponto central da consistencia esta no PostgreSQL:
+O ponto central da consistência está no PostgreSQL:
 
 - tabela `posts` com campo `likes_count`
 - tabela `post_likes`
-- constraint unica em `(post_id, user_id)`
+- constraint única em `(post_id, user_id)`
 
-Isso garante que o mesmo usuario nao consiga curtir o mesmo post mais de uma vez, mesmo com varias requisicoes simultaneas.
+Isso garante que o mesmo usuário não consiga curtir o mesmo post mais de uma vez, mesmo com várias requisições simultaneas.
 
-### 2. Processamento assincrono com fila
+### 2. Processamento assíncrono com fila
 
 O endpoint de like retorna `202 Accepted` e publica um job na BullMQ.
 
 Motivação:
 
 - desacoplar a API HTTP da escrita final
-- absorver rajadas de requisicoes
-- deixar o fluxo facil de explicar
+- absorver rajadas de requisições
 
-### 3. Atualizacao atomica do contador
+### 3. Atualização atômica do contador
 
-No worker, a curtida e processada em transacao:
+No worker, a curtida é processada em transacao:
 
 1. tenta inserir em `post_likes`
-2. se a insercao for nova, executa `increment: 1` em `posts.likesCount`
-3. se houver violacao de unicidade, considera a operacao idempotente e nao incrementa novamente
+2. se a inserção for nova, executa `increment: 1` em `posts.likesCount`
+3. se houver violação de unicidade, considera a operação idempotente e não incrementa novamente
 
 ### 4. Cache simples e objetivo
 
@@ -115,20 +114,20 @@ O projeto cacheia prioritariamente:
 
 - `GET /posts/ranking/top-liked`
 
-Tambem foi incluido cache para:
+Também foi incluído cache para:
 
 - `GET /posts/:id`
 
-O cache e invalidado somente quando um like novo e persistido com sucesso.
+O cache é invalidado somente quando um like novo é persistido com sucesso.
 
 ## Como rodar localmente
 
-### Pre-requisitos
+### Pré-requisitos
 
 - Node.js 20+
 - Docker e Docker Compose
 
-### 1. Instale as dependencias
+### 1. Instale as dependências
 
 ```bash
 cd backend
@@ -138,7 +137,7 @@ npm install
 cd ..
 ```
 
-### 2. Configure variaveis de ambiente
+### 2. Configure variáveis de ambiente
 
 Copie os exemplos abaixo:
 
@@ -185,9 +184,9 @@ FRONTEND_PORT=4173
 VITE_API_BASE_URL=http://localhost:3333
 ```
 
-### 4. Gere o client Prisma, aplique a migracao e rode o seed
+### 4. Gere o client Prisma, aplique a migração e rode o seed
 
-Se o banco estiver no Docker, o caminho mais confiavel e executar migration e seed pelo proprio container do backend:
+Se o banco estiver no Docker, o caminho mais confiavel é executar migration e seed pelo próprio container do backend:
 
 ```bash
 cd E:\postlike-queue
@@ -204,7 +203,7 @@ npx prisma generate
 
 ### 5. Rode API, worker e frontend
 
-Para a execucao mais simples, suba tudo pelo Docker:
+Para a execução mais simples, suba tudo pelo Docker:
 
 ```bash
 cd E:\postlike-queue
@@ -272,13 +271,13 @@ Servicos iniciados:
 - API: [http://localhost:3333](http://localhost:3333)
 - Frontend: [http://localhost:4173](http://localhost:4173)
 
-A interface web esta em portugues; o codigo-fonte permanece em ingles.
+A interface web está em português; o código-fonte permanece em inglês.
 
 ## Conectar ao banco com Beekeeper Studio
 
-O [Beekeeper Studio](https://www.beekeeperstudio.io/) e um cliente grafico simples para PostgreSQL. Use para inspecionar tabelas `posts` e `post_likes` durante a demo ou o debug.
+O [Beekeeper Studio](https://www.beekeeperstudio.io/) é um cliente gráfico simples para PostgreSQL. Use para inspecionar tabelas `posts` e `post_likes` durante a demo ou o debug.
 
-### Pre-requisito
+### Pré-requisito
 
 O container `postgres` precisa estar rodando e a porta publicada no host precisa bater com o que voce colocar no Beekeeper. No projeto, o padrao no `.env` da raiz e:
 
@@ -311,13 +310,13 @@ SELECT * FROM post_likes ORDER BY created_at DESC;
 
 ### Se a autenticacao falhar
 
-- Confirme que o Postgres do projeto esta de pe: `docker compose ps` e veja se `postlike-postgres` esta **healthy**.
+- Confirme que o Postgres do projeto esta de pé: `docker compose ps` e veja se `postlike-postgres` esta **healthy**.
 - Confirme a porta publicada na coluna **PORTS** (deve ser algo como `0.0.0.0:55432->5432/tcp`).
 - Se outro programa ja usar a mesma porta, altere `POSTGRES_PORT` no `.env`, recrie os containers (`docker compose down` e `docker compose up -d postgres redis`) e use a nova porta no Beekeeper.
 
 ## Fluxo recomendado para avaliacao
 
-Para reduzir atrito em ambiente local, o fluxo mais seguro para demonstracao e este:
+Para reduzir atrito em ambiente local, o fluxo mais seguro para demonstração é este:
 
 ```bash
 cd E:\postlike-queue
@@ -327,11 +326,11 @@ docker compose run --rm backend npm run prisma:seed
 docker compose up --build backend worker frontend
 ```
 
-Esse fluxo evita depender da conexao local do host com o PostgreSQL para migration e seed, usando o proprio servico `backend` dentro da rede do Docker Compose.
+Esse fluxo evita depender da conexão local do host com o PostgreSQL para migration e seed, usando o próprio serviço `backend` dentro da rede do Docker Compose.
 
 ### PowerShell no Windows
 
-Em versoes antigas do PowerShell, `&&` entre comandos pode nao funcionar. Nesse caso, execute um comando por linha ou use `;` como separador, por exemplo:
+Em versões antigas do PowerShell, `&&` entre comandos pode não funcionar. Nesse caso, execute um comando por linha ou use `;` como separador, por exemplo:
 
 ```powershell
 cd E:\postlike-queue
@@ -350,8 +349,8 @@ docker compose up --build backend worker frontend
 4. O worker consome o job.
 5. O worker tenta inserir a curtida em `post_likes`.
 6. Se a curtida for nova, incrementa `likes_count`.
-7. Se a curtida ja existir, nao incrementa novamente.
-8. Quando um novo like e persistido, o worker invalida as chaves de cache afetadas.
+7. Se a curtida já existir, não incrementa novamente.
+8. Quando um novo like é persistido, o worker invalida as chaves de cache afetadas.
 
 ## Como funciona o cache
 
@@ -371,20 +370,20 @@ Fluxo do ranking:
 1. `GET /posts/ranking/top-liked` tenta ler do Redis
 2. em cache hit, retorna imediatamente
 3. em cache miss, consulta o PostgreSQL, salva no Redis e devolve a resposta
-4. quando um like novo e processado, o worker invalida a chave
+4. quando um like novo é processado, o worker invalida a chave
 
-## Como a consistencia dos likes foi garantida
+## Como a consistência dos likes foi garantida
 
-O projeto se apoia em tres mecanismos simples e robustos:
+O projeto se apoia em três mecanismos simples e robustos:
 
 1. `UNIQUE(post_id, user_id)` em `post_likes`
 2. transacao no worker para inserir a curtida e incrementar o contador
-3. incremento atomico com Prisma (`increment: 1`)
+3. incremento atômico com Prisma (`increment: 1`)
 
-Consequencia pratica:
+Consequência pratica:
 
-- dois likes simultaneos do mesmo usuario para o mesmo post nao geram dupla contagem
-- likes de usuarios diferentes para o mesmo post sao acumulados corretamente
+- dois likes simultâneos do mesmo usuário para o mesmo post nâo geram dupla contagem
+- likes de usuários diferentes para o mesmo post são acumulados corretamente
 - o contador final continua consistente mesmo sob concorrencia
 
 ## Fluxos principais
@@ -393,13 +392,13 @@ Consequencia pratica:
 
 1. frontend chama `GET /posts`
 2. API consulta o PostgreSQL
-3. resposta contem os posts com `likesCount`
+3. resposta contém os posts com `likesCount`
 
 ### Fluxo 2: curtir um post
 
-1. usuario informa `userId`
+1. usuário informa `userId`
 2. frontend chama `POST /posts/:id/likes`
-3. se for a primeira curtida daquele usuario naquele post, a API retorna `202 Accepted` e enfileira o job; se ja existir curtida, retorna `409 Conflict`
+3. se for a primeira curtida daquele usuário naquele post, a API retorna `202 Accepted` e enfileira o job; se já existir curtida, retorna `409 Conflict`
 4. worker processa a fila e persiste curtidas novas
 5. frontend pode atualizar detalhes e ranking em seguida
 
@@ -407,12 +406,12 @@ Consequencia pratica:
 
 1. frontend chama `GET /posts/ranking/top-liked`
 2. API tenta o Redis primeiro
-3. se necessario, busca no PostgreSQL
+3. se necessário, busca no PostgreSQL
 4. resposta traz ranking ordenado por `likesCount desc`
 
 ## Endpoints documentados
 
-Todos os endpoints estao documentados no Swagger:
+Todos os endpoints estão documentados no Swagger:
 
 - `GET /posts`
 - `POST /posts`
@@ -423,27 +422,26 @@ Todos os endpoints estao documentados no Swagger:
 
 ## Seed inicial
 
-O seed cria posts de exemplo para demonstracao.
+O seed cria posts de exemplo para demonstração.
 
 Comportamento:
 
-- se nao houver posts, ele insere os dados iniciais
-- se ja houver posts, ele nao sobrescreve os dados existentes
+- se não houver posts, ele insere os dados iniciais
+- se já houver posts, ele não sobrescreve os dados existentes
 
-## Pontos opcionais incluidos
+## Pontos opcionais incluídos
 
 - cache adicional em `GET /posts/:id`
 - feedback visual no frontend para carregamento, sucesso e erro
-- criacao de post pela interface (`POST /posts`) e textos da UI em portugues
+- criação de post pela interface (`POST /posts`) e textos da UI em portugues
 
-## Observacoes finais
+## Observações finais
 
-A solucao evita complexidade desnecessaria:
+A solução evita complexidade desnecessária:
 
 - sem microservicos
 - sem NestJS
-- sem autenticacao complexa
+- sem autenticação complexa
 - sem CQRS
-- sem eventos distribuidos
+- sem eventos distribuídos
 
-O foco e entregar uma implementacao pequena, profissional, robusta sob concorrencia e facil de defender tecnicamente.
